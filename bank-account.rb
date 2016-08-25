@@ -5,25 +5,27 @@ require 'awesome_print'
 module Bank
   # initialize Account by pulling in details from a hash
   class Account
-    attr_accessor :balance
-    attr_reader :owner, :id, :created_date
+    attr_reader :balance, :owner, :id, :created_date
     @@bank_accounts = []
 
     def initialize(account_details_hash)
       @id = account_details_hash[:id]
-      @balance = account_details_hash[:balance].to_i # balance is in cents
+      @balance = make_into_cents(account_details_hash[:balance]) # balance is in cents
       @created_date = account_details_hash[:created_date]
       @owner = account_details_hash[:owner]
-
-      # no putting in negative dollars allowed
-      if @balance < 0
-        raise ArgumentError.new("Bank account cannot be created with negative balance.")
-      else
-        puts "Account is created with #{print_d(@balance)} balance."
-      end
+      @minimum = 0
+      min_balance(@balance, @minimum)
       # run method complete_info
       # complete_info ######### unhash this once you make the find method!!!!!!!!
+      return "Account is created with #{print_d(@balance)} balance."
     end # end of initialize
+
+    def min_balance(balance,minimum)
+      # no putting in negative dollars allowed!!!
+      if balance < minimum
+        raise ArgumentError.new("Bank account cannot be created with negative balance.")
+      end
+    end
 
     def complete_info
       # if there is no ID, create one!
@@ -44,34 +46,37 @@ module Bank
       end # end of @owner loop
     end
 
+    def make_into_cents(money)
+      if Integer(money) != money
+        money = (money * 100).to_i # this stores a float as an int. ie if they \enter 100.00 it multiplies it by 100 and stores that.
+      end
+      return money
+    end
+
     # define a method to withdraw money
     def withdraw(withdrawal) ######## this needs to be in cents, and since there's no gets.chomp I don't think I can do anything to control it????
-      if Integer(withdrawal) != withdrawal
-        withdrawal = (withdrawal * 100).to_i # this stores a float as an int. ie if they \enter 100.00 it multiplies it by 100 and stores that.
-      end
+      withdrawal = make_into_cents(withdrawal)
       # checks to see how the balance and withdrawal are related
       if @balance < withdrawal
-        puts "Sorry, your balance is #{print_d(@balance)}, and you cannot withdraw an amount larger than your current balance. "
+        return "Sorry, your balance is #{print_d(@balance)}, and you cannot withdraw an amount larger than your current balance. "
       else
         @balance -= withdrawal
-        puts "You have withdrawn #{print_d(withdrawal)}. \nYour balance is now #{print_d(@balance)}."
+        return "You have withdrawn #{print_d(withdrawal)}. \nYour balance is now #{print_d(@balance)}."
       end
 
       # returns balance :)
-      return @balance
+      return balance
     end
 
     # deposit and dd to blaance
     def deposit(deposit)
-      if Integer(deposit) != deposit
-        deposit = (deposit * 100).to_i # this stores a float as an int. ie if they \enter 100.00 it multiplies it by 100 and stores that.
-      end
+      make_into_cents(deposit)
       # checks to see if deposit is less than 0, if so deposits
       if deposit < 0
-        puts "Depositing negative dollars is not allowed."
+        return "Depositing negative dollars is not allowed."
       else
         @balance += deposit
-        puts "You have deposited #{print_d(deposit)}. \nYour balance is now #{print_d(@balance)}."
+        return "You have deposited #{print_d(deposit)}. \nYour balance is now #{print_d(@balance)}."
       end
 
       # returns balance
@@ -118,7 +123,7 @@ module Bank
 
     # this prints a bank account's info nicely
     def to_s
-      return "ID: #{@id}\nBalance: #{@balance}\nCreated Date: #{@created_date}"
+      return "ID: #{@id}\nBalance: #{print_d(@balance)}\nCreated Date: #{@created_date}"
     end
 
   end # end of Account class
@@ -162,52 +167,17 @@ module Bank
 
   end # end of Owner class
 
+
+  
 end # end of Bank
 
-# Bank::Account.create_accounts
+puppy = Bank::Account.new(id: 4, balance: 1000000.39383)
+puts puppy
+puts puppy.withdraw(50000)
+
+
 # ap Bank::Account.all
 
 # puts Bank::Account.find("1217")
 
-puts Bank::Owner.create_owners
-
-# accounts_array =  []
-#
-# CSV.open("./support/accounts.csv", "r").each do |line|
-#   account_details = {}
-#   account_details[:id] = line[0]
-#   account_details[:balance] = line[1]
-#   account_details[:created_date] = line[2]
-#   accounts_array << account_details
-# end
-#
-#   accounts_array.each do |item|
-#     Bank::Account.new(item)
-#   end
-
-
-
-
-
-# account_2 = Bank::Account.new(balance: 600) # trying it out with no ID or owner
-# account_1.withdraw(300.4)
-# account_1.deposit(1000)
-# yay = account_2.id
-# puts yay
-
-
-
-# a bunch of shit I wrote to try to store dollars as cents,
-# but turns out that was not necessary for this project,
-
-
-    # start here, and call this method elsewhere
-    # def check_balance
-    #   return @balance.to_f
-    # end
-
-    # # this method stores $10.00 => 1000
-    # def convert_dollars_to_fixnum(dollars)
-    #   dollars =  sprintf("%.2f",dollars.to_f)
-    #   dollars = dollars.delete(".").to_i
-    # end
+# puts Bank::Owner.create_owners
