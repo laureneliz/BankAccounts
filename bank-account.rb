@@ -6,7 +6,7 @@ require 'chronic'
 module Bank
   # initialize Account by pulling in details from a hash
   class Account
-    attr_reader :balance, :owner, :id, :created_date
+    attr_reader :balance, :owner, :id, :created_date, :minimum
     @@bank_accounts = []
 
     def initialize(account_details_hash)
@@ -18,13 +18,13 @@ module Bank
       min_balance(@balance, @minimum)
       # run method complete_info
       # complete_info ######### unhash this once you make the find method!!!!!!!!
-      return "Account is created with #{print_d(@balance)} balance."
+      puts "Account is created with #{print_d(@balance)} balance."
     end # end of initialize
 
     def min_balance(balance,minimum)
       # no putting in negative dollars allowed!!!
       if balance < minimum
-        raise ArgumentError.new("Bank account cannot be created with negative balance.")
+        raise ArgumentError.new("Bank account cannot be created with less than #{print_d(@minimum)} balance.")
       end
     end
 
@@ -175,17 +175,36 @@ module Bank
 
   class SavingsAccount < Account
 
-    def initialize
+    def initialize(account_details_hash)
+      super # pulls in initialize method from Account classa
+      @minimum = 1000 # this means ten dollars!
+      min_balance(@balance, @minimum) # checks to make sure that there is enough money
+      return "Account is created with #{print_d(@balance)} balance."
+    end
 
+    def withdraw(withdrawal)
+      super
+      fee = 200 # this means two dollars
+      balance = @balance - fee # this removes the fee, we need to print the local variable here instead of the instance variable
+
+      # loop to ensure that the balance is not under the $10 limit, and if not, return the withdrawn amount.
+      if balance < 1000
+        return "You may not withdraw #{print_d(withdrawal)}. \nThis transaction would make your balance #{print_d(balance)}. \nThe balance must not be below $10.00."
+      else
+        return "You have withdrawn #{print_d(withdrawal)}.\n There was an additional fee of #{print_d(fee)}\nYour balance is now #{print_d(balance)}."
+      end
+    end
+
+    def deposit()
     end
 
   end
 
 end # end of Bank
 
-puppy = Bank::Account.new(id: 4, balance: 1000000.39383)
+puppy = Bank::SavingsAccount.new(id: 4, balance: 5000000)
 puts puppy
-puts puppy.withdraw(50000)
+puts puppy.withdraw(5000000-500)
 
 
 # ap Bank::Account.all
