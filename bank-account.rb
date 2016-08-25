@@ -1,6 +1,7 @@
 # create a Bank Module
 require 'csv'
 require 'awesome_print'
+require 'chronic'
 
 module Bank
   # initialize Account by pulling in details from a hash
@@ -44,6 +45,11 @@ module Bank
           puts "Okay, but this account is now ownerless."
         end
       end # end of @owner loop
+
+      # if there is no created date, create one
+      if @created_date == nil
+        @created_date == Time.now
+      end
     end
 
     def make_into_cents(money)
@@ -167,8 +173,14 @@ module Bank
 
   end # end of Owner class
 
+  class SavingsAccount < Account
 
-  
+    def initialize
+
+    end
+
+  end
+
 end # end of Bank
 
 puppy = Bank::Account.new(id: 4, balance: 1000000.39383)
