@@ -55,6 +55,8 @@ module Bank
     def make_into_cents(money)
       if Integer(money) != money
         money = (money * 100).to_i # this stores a float as an int. ie if they \enter 100.00 it multiplies it by 100 and stores that.
+      else
+        money = money.to_i        # this is just in case there is a float like 2500.0
       end
       return money
     end
@@ -195,16 +197,19 @@ module Bank
       end
     end
 
-    def deposit()
+    def add_interest(rate)
+      interest = make_into_cents(@balance * rate/100)
+      return "At a rate of #{rate}%, your interest is #{print_d(interest)}."
     end
 
   end
 
 end # end of Bank
 
-puppy = Bank::SavingsAccount.new(id: 4, balance: 5000000)
+puppy = Bank::SavingsAccount.new(id: 4, balance: 1000000)
 puts puppy
-puts puppy.withdraw(5000000-500)
+# puts puppy.withdraw(4500)
+puts puppy.add_interest(0.25)
 
 
 # ap Bank::Account.all
