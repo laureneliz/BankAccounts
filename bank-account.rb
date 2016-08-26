@@ -65,17 +65,21 @@ module Bank
 
     # define a method to withdraw money
     def withdraw(withdrawal) ######## this needs to be in cents, and since there's no gets.chomp I don't think I can do anything to control it????
-      withdrawal = make_into_cents(withdrawal)
-      # checks to see how the balance and withdrawal are related
-      if @balance < withdrawal
-        return @balance #{}"Sorry, your balance is #{print_d(@balance)}, and you cannot withdraw an amount larger than your current balance. "
-      else
-        @balance -= withdrawal
-        return @balance #{}"You have withdrawn #{print_d(withdrawal)}. \nYour balance is now #{print_d(@balance)}."
-      end
+      fee = 0
+      withdrawal_helper(withdrawal, @minimum, fee)
+    end
 
-      # returns balance :)
-      # return @balance
+    def withdrawal_helper(withdrawal, minimum, fee)
+      withdrawal = make_into_cents(withdrawal) # just being safe with these guys
+      fee = make_into_cents(fee)
+      minimum = make_into_cents(minimum)
+      if (@balance - withdrawal - fee) < minimum
+        return "Sorry, your balance is #{print_d(@balance)}. Including a fee of #{print_d(fee)} and withdrawal of #{print_d(withdrawal)}, you cannot withdraw an amount that will make your balance smaller than the #{print_d(@minimum)} minimum."
+      else
+        @balance -= (withdrawal + fee)
+        return"You have withdrawn #{print_d(withdrawal)}. \nThere was a fee of #{print_d(fee)}. \nYour balance is now #{print_d(@balance)}."
+      end
+      return @balance
     end
 
     # deposit and dd to blaance
@@ -192,16 +196,8 @@ module Bank
     end
 
     def withdraw(withdrawal)
-      super
-      withdrawal = make_into_cents(withdrawal) # need to call this again, b/c somehow this doesn't have the full info from above
       fee = 200 # this means two dollars
-      balance = @balance - fee # this removes the fee, we need to print the local variable here instead of the instance variable
-      # loop to ensure that the balance is not under the $10 limit, and if not, return the withdrawn amount.
-      if balance < @minimum
-        return "You may not withdraw #{print_d(withdrawal)}. \nThis transaction would make your balance #{print_d(balance)}. \nThe balance must not be below #{print_d(@minimum)}."
-      else
-        return "You have withdrawn #{print_d(withdrawal)}. \nThere was an additional fee of #{print_d(fee)}\nYour balance is now #{print_d(balance)}."
-      end
+      withdrawal_helper(withdrawal, @minimum, fee)
     end
 
     def add_interest(rate)
@@ -216,40 +212,55 @@ module Bank
       super # pulls in initialize method from Account class
       @minimum = 0 # this means ten dollars!
       min_balance(@balance, @minimum) # checks to make sure that there is enough money
+      @checks_used = 0
       return "Account is created with #{print_d(@balance)} balance."
     end
 
     def withdraw(withdrawal)
-      super
-      withdrawal = make_into_cents(withdrawal) # need to call this again, b/c somehow this doesn't have the full info from above
-      fee = 100 # this means one dolla billz
-      balance = @balance - fee # this charges the fee, we need to print the local variable here instead of the instance variable
-      # loop to ensure that the balance is not under the minimum, and if not, return the withdrawn amount.
-      if balance < @minimum
-        return "You may not withdraw #{print_d(withdrawal)}. \nThis transaction would make your balance #{print_d(balance)}. \nThe balance must not be below #{print_d(@minimum)}."
+      fee = 100 # one dolla billz
+      withdrawal_helper(withdrawal, @minimum, fee)
+    end
+
+    def withdraw_using_check(withdrawal)
+      minimum = -1000
+      if @checks_used < 3
+        fee = 0 # one dolla billz
       else
-        return "You have withdrawn #{print_d(withdrawal)}. \nThere was an additional fee of #{print_d(fee)}\nYour balance is now #{print_d(balance)}."
+        fee = 200
       end
+      status = withdrawal_helper(withdrawal, minimum, fee) # this is here so that we can do some more stuff before returning.
+      @checks_used += 1
+      return "#{status}\nYou have used #{@checks_used} check(s) this month."
+    end
+
+    def reset_checks
+      @checks_used = 0
     end
   end # end of class CheckingAccount
 
 end # end of Bank
 
-# regular = Bank::Account.new(id:50493, balance:1000)
-# puts regular.withdraw(9.50)
-#
-# puppy = Bank::SavingsAccount.new(id: 4, balance: 1000000)
-# # puts puppy
-# puts puppy.withdraw(90.5)
-# # puts puppy.add_interest(0.25)
-
+regular = Bank::Account.new(id:50493, balance:1000)
+puts regular.withdraw(9.50)
+puts "**********************************"
+puppy = Bank::SavingsAccount.new(id: 4, balance: 1000000)
+# puts puppy
+puts puppy.withdraw(90.5)
+# puts puppy.add_interest(0.25)
+puts "**********************************"
 savings = Bank::SavingsAccount.new(id:40584, balance:1400)
 puts savings.withdraw(10.00)
 puts savings.add_interest(0.34)
-
-# checking = Bank::CheckingAccount.new(id:20449, balance:-10495)
-# puts checking.withdraw(12049)
-
+puts "**********************************"
+checking = Bank::CheckingAccount.new(id:20449, balance:10495)
+puts checking.withdraw(10.00)
+puts "**********************************"
+puts checking.withdraw_using_check(15.50)
+puts checking.withdraw_using_check(15.89)
+puts checking.withdraw_using_check(4500)
+checking.reset_checks
+puts checking.withdraw_using_check(12.50)
+puts checking.withdraw_using_check(100)
 # kitty = Bank::CheckingAccount.new(id: 103940304, balance: 1000)
 # # puts kitty
 # puts kitty.withdraw(1075)
